@@ -16,9 +16,11 @@ from minigrid.core.actions import Actions
 from minigrid.core.constants import COLOR_NAMES, DIR_TO_VEC, TILE_PIXELS
 from minigrid.core.grid import Grid
 from minigrid.core.mission import MissionSpace
-from minigrid.core.world_object import Point, WorldObj
+from minigrid.core.world_object import Point, WorldObj, Goal, Wall
 
 T = TypeVar("T")
+
+import matplotlib.pyplot as plt
 
 
 class MiniGridEnv(gym.Env):
@@ -233,7 +235,8 @@ class MiniGridEnv(gym.Env):
         Compute the reward to be given upon success
         """
 
-        return 1 - 0.9 * (self.step_count / self.max_steps)
+        return 1
+        # return 1 - 0.9 * (self.step_count / self.max_steps)
 
     def _rand_int(self, low: int, high: int) -> int:
         """
@@ -407,12 +410,25 @@ class MiniGridEnv(gym.Env):
         return np.array((-dy, dx))
 
     @property
+    def left_vec(self):
+        dx, dy = self.dir_vec
+        return np.array((dy, -dx))
+
+    @property
     def front_pos(self):
         """
         Get the position of the cell that is right in front of the agent
         """
 
         return self.agent_pos + self.dir_vec
+
+    @property
+    def right_pos(self):
+        return self.agent_pos + self.right_vec
+
+    @property
+    def left_pos(self):
+        return self.agent_pos + self.left_vec
 
     def get_view_coords(self, i, j):
         """
@@ -729,7 +745,7 @@ class MiniGridEnv(gym.Env):
         else:
             return self.get_full_render(highlight, tile_size)
 
-    def render(self):
+    def render(self, dir=None):
         img = self.get_frame(self.highlight, self.tile_size, self.agent_pov)
 
         if self.render_mode == "human":
@@ -773,7 +789,63 @@ class MiniGridEnv(gym.Env):
             pygame.display.flip()
 
         elif self.render_mode == "rgb_array":
+            if dir is not None:
+                plt.imsave(dir, img)
             return img
+
+    def left_is_clear(self):
+        x, y = self.left_pos
+        left_obj = self.grid.get(x, y)
+        return left_obj is None
+
+    def right_is_clear(self):
+        x, y = self.right_pos
+        right_obj = self.grid.get(x, y)
+        return right_obj is None
+
+    def front_is_clear(self):
+        x, y = self.front_pos
+        front_obj = self.grid.get(x, y)
+        return front_obj is None
+
+    def goal_on_left(self):
+        x, y = self.left_pos
+        left_obj = self.grid.get(x, y)
+        if left_obj is not None:
+            return type(left_obj) == Goal
+
+        x2, y2 = np.array([x, y]) + self.left_vec
+        left_obj2 = self.grid.get(x2, y2)
+        if left_obj2 is not None:
+            return type(left_obj2) == Goal
+
+        x3, y3 = np.array([x2, y2]) + self.left_vec
+        left_obj3 = self.grid.get(x3, y3)
+        if left_obj3 is not None:
+            return type(left_obj3) == Goal()
+
+        return False
+
+    def goal_on_right(self):
+        x, y = self.right_pos
+        right_obj = self.grid.get(x, y)
+        if right_obj is not None:
+            return type(right_obj) == Goal
+
+        x2, y2 = np.array([x, y]) + self.right_vec
+        right_obj2 = self.grid.get(x2, y2)
+        if right_obj2 is not None:
+            return type(right_obj2) == Goal
+
+        x3, y3 = np.array([x2, y2]) + self.right_vec
+        right_obj3 = self.grid.get(x3, y3)
+        if right_obj3 is not None:
+            return type(right_obj3) == Goal()
+
+        return False
+
+    def goal_present(self):
+        return type(self.grid.get(self.agent_pos[0], self.agent_pos[1])) == Goal
 
     def close(self):
         if self.window:
