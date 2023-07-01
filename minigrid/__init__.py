@@ -89,6 +89,8 @@ def register_minigrid_envs():
         kwargs={"size": 11, "num_crossings": 5, "obstacle_type": Wall},
     )
 
+    print("======== minigrid environment registered ===========")
+
     # DistShift
     # ----------------------------------------
 

@@ -206,7 +206,8 @@ class CrossingRandomEnv(MiniGridEnv):
                             if not np.array_equal(new_location, self.agent_pos):
                                 available_goal.append(new_location)
 
-        goal_location = random.choice(available_goal)
+        choice = self.np_random.choice(len(available_goal))
+        goal_location = available_goal[choice]
         self.put_obj(Goal(), goal_location[0], goal_location[1])
 
         self.mission = (
