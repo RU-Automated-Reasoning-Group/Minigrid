@@ -118,6 +118,8 @@ class MiniGridEnv(gym.Env):
         self.tile_size = tile_size
         self.agent_pov = agent_pov
 
+        self.reward = 0
+
     def reset(
         self,
         *,
@@ -597,9 +599,15 @@ class MiniGridEnv(gym.Env):
         if self.render_mode == "human":
             self.render()
 
-        obs = self.gen_obs()
-
+        # obs = self.gen_obs()
+        obs = {"image": None, "direction": None, "mission": None}
+        self.reward = reward
         return obs, reward, terminated, truncated, {}
+
+    def get_reward(self):
+        x, y = self.agent_pos
+        reward = float(type(self.grid.get(x, y)) == Goal)
+        return reward
 
     def gen_obs_grid(self, agent_view_size=None):
         """
@@ -796,17 +804,29 @@ class MiniGridEnv(gym.Env):
     def left_is_clear(self):
         x, y = self.left_pos
         left_obj = self.grid.get(x, y)
-        return left_obj is None
+        if left_obj is None:
+            return True
+        elif type(left_obj) == Goal:
+            return True
+        return False
 
     def right_is_clear(self):
         x, y = self.right_pos
         right_obj = self.grid.get(x, y)
-        return right_obj is None
+        if right_obj is None:
+            return True
+        elif type(right_obj) == Goal:
+            return True
+        return False
 
     def front_is_clear(self):
         x, y = self.front_pos
         front_obj = self.grid.get(x, y)
-        return front_obj is None
+        if front_obj is None:
+            return True
+        elif type(front_obj) == Goal:
+            return True
+        return False
 
     def goal_on_left(self):
         x, y = self.left_pos
