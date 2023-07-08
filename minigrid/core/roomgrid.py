@@ -4,7 +4,7 @@ import numpy as np
 
 from minigrid.core.constants import COLOR_NAMES
 from minigrid.core.grid import Grid
-from minigrid.core.world_object import Ball, Box, Door, Key, WorldObj
+from minigrid.core.world_object import Ball, Box, Door, Key, WorldObj, Goal
 from minigrid.minigrid_env import MiniGridEnv
 
 
@@ -213,13 +213,15 @@ class RoomGrid(MiniGridEnv):
             color = self._rand_color()
 
         # TODO: we probably want to add an Object.make helper function
-        assert kind in ["key", "ball", "box"]
+        assert kind in ["key", "ball", "box", "goal"]
         if kind == "key":
             obj = Key(color)
         elif kind == "ball":
             obj = Ball(color)
         elif kind == "box":
             obj = Box(color)
+        elif kind == "goal":
+            obj = Goal()
         else:
             raise ValueError(
                 f"{kind} object kind is not available in this environment."

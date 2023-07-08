@@ -16,7 +16,7 @@ from minigrid.core.actions import Actions
 from minigrid.core.constants import COLOR_NAMES, DIR_TO_VEC, TILE_PIXELS
 from minigrid.core.grid import Grid
 from minigrid.core.mission import MissionSpace
-from minigrid.core.world_object import Point, WorldObj, Goal, Wall
+from minigrid.core.world_object import Ball, Door, Goal, Key, Point, Wall, WorldObj
 
 T = TypeVar("T")
 
@@ -808,6 +808,8 @@ class MiniGridEnv(gym.Env):
             return True
         elif type(left_obj) == Goal:
             return True
+        elif type(left_obj) == Door:
+            return True
         return False
 
     def right_is_clear(self):
@@ -817,6 +819,8 @@ class MiniGridEnv(gym.Env):
             return True
         elif type(right_obj) == Goal:
             return True
+        elif type(right_obj) == Door:
+            return True
         return False
 
     def front_is_clear(self):
@@ -825,6 +829,10 @@ class MiniGridEnv(gym.Env):
         if front_obj is None:
             return True
         elif type(front_obj) == Goal:
+            return True
+        elif type(front_obj) == Door:
+            if front_obj.is_locked:
+                return False
             return True
         return False
 
@@ -842,7 +850,7 @@ class MiniGridEnv(gym.Env):
         x3, y3 = np.array([x2, y2]) + self.left_vec
         left_obj3 = self.grid.get(x3, y3)
         if left_obj3 is not None:
-            return type(left_obj3) == Goal()
+            return type(left_obj3) == Goal
 
         return False
 
@@ -860,12 +868,112 @@ class MiniGridEnv(gym.Env):
         x3, y3 = np.array([x2, y2]) + self.right_vec
         right_obj3 = self.grid.get(x3, y3)
         if right_obj3 is not None:
-            return type(right_obj3) == Goal()
+            return type(right_obj3) == Goal
+
+        return False
+
+    def ball_on_right(self):
+        x, y = self.right_pos
+        right_obj = self.grid.get(x, y)
+        if right_obj is not None:
+            return type(right_obj) == Ball
+
+        x2, y2 = np.array([x, y]) + self.right_vec
+        right_obj2 = self.grid.get(x2, y2)
+        if right_obj2 is not None:
+            return type(right_obj2) == Ball
+
+        x3, y3 = np.array([x2, y2]) + self.right_vec
+        right_obj3 = self.grid.get(x3, y3)
+        if right_obj3 is not None:
+            return type(right_obj3) == Ball
 
         return False
 
     def goal_present(self):
         return type(self.grid.get(self.agent_pos[0], self.agent_pos[1])) == Goal
+
+    def front_is_closed_door(self):
+        x, y = self.front_pos
+        front_obj = self.grid.get(x, y)
+        if type(front_obj) == Door:
+            if not front_obj.is_open:
+                return True
+        return False
+
+    def front_is_locked_door(self):
+        x, y = self.front_pos
+        front_obj = self.grid.get(x, y)
+        if type(front_obj) == Door:
+            if front_obj.is_locked:
+                return True
+        return False
+
+    def front_is_key(self):
+        x, y = self.front_pos
+        front_obj = self.grid.get(x, y)
+        if type(front_obj) == Key:
+            return True
+        return False
+
+    def front_is_wall(self):
+        x, y = self.front_pos
+        front_obj = self.grid.get(x, y)
+        if type(front_obj) == Wall:
+            return True
+        return False
+
+    def front_is_obj(self):
+        x, y = self.front_pos
+        front_obj = self.grid.get(x, y)
+        return front_obj is not None
+
+    def front_is_ball(self):
+        x, y = self.front_pos
+        front_obj = self.grid.get(x, y)
+        return type(front_obj) == Ball
+
+    def locked_door_on_right(self):
+        x, y = self.right_pos
+        right_obj = self.grid.get(x, y)
+        if right_obj is not None:
+            if type(right_obj) == Door:
+                return right_obj.is_locked
+            return False
+
+        x2, y2 = np.array([x, y]) + self.right_vec
+        right_obj2 = self.grid.get(x2, y2)
+        if right_obj2 is not None:
+            if type(right_obj2) == Door:
+                return right_obj2.is_locked
+            return False
+
+        x3, y3 = np.array([x2, y2]) + self.right_vec
+        right_obj3 = self.grid.get(x3, y3)
+        if right_obj3 is not None:
+            if type(right_obj3) == Door:
+                return right_obj3.is_locked
+            return False
+
+        return False
+
+    def key_on_right(self):
+        x, y = self.right_pos
+        right_obj = self.grid.get(x, y)
+        if right_obj is not None:
+            return type(right_obj) == Key
+
+        x2, y2 = np.array([x, y]) + self.right_vec
+        right_obj2 = self.grid.get(x2, y2)
+        if right_obj2 is not None:
+            return type(right_obj2) == Key
+
+        x3, y3 = np.array([x2, y2]) + self.right_vec
+        right_obj3 = self.grid.get(x3, y3)
+        if right_obj3 is not None:
+            return type(right_obj3) == Key
+
+        return False
 
     def close(self):
         if self.window:

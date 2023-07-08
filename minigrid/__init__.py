@@ -122,6 +122,12 @@ def register_minigrid_envs():
     )
 
     register(
+        id="MiniGrid-DoorKey-7x7-v0",
+        entry_point="minigrid.envs:DoorKeyEnv",
+        kwargs={"size": 7},
+    )
+
+    register(
         id="MiniGrid-DoorKey-8x8-v0",
         entry_point="minigrid.envs:DoorKeyEnv",
         kwargs={"size": 8},
@@ -393,6 +399,12 @@ def register_minigrid_envs():
     register(
         id="MiniGrid-MultiRoom-N6-v0",
         entry_point="minigrid.envs:MultiRoomEnv",
+        kwargs={"minNumRooms": 6, "maxNumRooms": 6},
+    )
+
+    register(
+        id="MiniGrid-MultiRoomNoDoor-N6-v0",
+        entry_point="minigrid.envs:MultiRoomNoDoorEnv",
         kwargs={"minNumRooms": 6, "maxNumRooms": 6},
     )
 
