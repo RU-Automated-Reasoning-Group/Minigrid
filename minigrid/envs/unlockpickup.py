@@ -84,7 +84,7 @@ class UnlockPickupEnv(RoomGrid):
         super()._gen_grid(width, height)
 
         # Add a box to the room on the right
-        obj, _ = self.add_object(1, 0, kind="box")
+        obj, _ = self.add_object(1, 0, kind="ball")
         # Make sure the two rooms are directly connected by a locked door
         door, _ = self.add_door(0, 0, 0, locked=True)
         # Add a key to unlock the door
@@ -101,6 +101,7 @@ class UnlockPickupEnv(RoomGrid):
         if action == self.actions.pickup:
             if self.carrying and self.carrying == self.obj:
                 reward = self._reward()
+                print("get reward")
                 terminated = True
 
         return obs, reward, terminated, truncated, info

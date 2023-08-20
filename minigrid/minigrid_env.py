@@ -16,7 +16,17 @@ from minigrid.core.actions import Actions
 from minigrid.core.constants import COLOR_NAMES, DIR_TO_VEC, TILE_PIXELS
 from minigrid.core.grid import Grid
 from minigrid.core.mission import MissionSpace
-from minigrid.core.world_object import Ball, Door, Goal, Key, Point, Wall, WorldObj
+from minigrid.core.world_object import (
+    Box,
+    Ball,
+    Door,
+    Goal,
+    Key,
+    Point,
+    Wall,
+    WorldObj,
+    Lava,
+)
 
 T = TypeVar("T")
 
@@ -564,6 +574,7 @@ class MiniGridEnv(gym.Env):
                 terminated = True
                 reward = self._reward()
             if fwd_cell is not None and fwd_cell.type == "lava":
+                reward = -1
                 terminated = True
 
         # Pick up an object
@@ -605,6 +616,12 @@ class MiniGridEnv(gym.Env):
         return obs, reward, terminated, truncated, {}
 
     def get_reward(self):
+        if self.mission.find("pick up") >= 0:
+            reward = 0.0
+            if self.carrying is not None:
+                reward = 1.0 if type(self.carrying) == Ball else 0.0
+            return reward
+            
         x, y = self.agent_pos
         reward = float(type(self.grid.get(x, y)) == Goal)
         return reward
@@ -830,6 +847,8 @@ class MiniGridEnv(gym.Env):
             return True
         elif type(front_obj) == Goal:
             return True
+        elif type(front_obj) == Key:
+            return True
         elif type(front_obj) == Door:
             if front_obj.is_locked:
                 return False
@@ -909,7 +928,22 @@ class MiniGridEnv(gym.Env):
                 return True
         return False
 
+    def locked_door_present(self):
+        x, y = self.front_pos
+        front_obj = self.grid.get(x, y)
+        if type(front_obj) == Door:
+            if front_obj.is_locked:
+                return True
+        return False
+
     def front_is_key(self):
+        x, y = self.front_pos
+        front_obj = self.grid.get(x, y)
+        if type(front_obj) == Key:
+            return True
+        return False
+
+    def key_present(self):
         x, y = self.front_pos
         front_obj = self.grid.get(x, y)
         if type(front_obj) == Key:
@@ -923,6 +957,13 @@ class MiniGridEnv(gym.Env):
             return True
         return False
 
+    def front_is_lava(self):
+        x, y = self.front_pos
+        front_obj = self.grid.get(x, y)
+        if type(front_obj) == Lava:
+            return True
+        return False
+
     def front_is_obj(self):
         x, y = self.front_pos
         front_obj = self.grid.get(x, y)
@@ -932,6 +973,11 @@ class MiniGridEnv(gym.Env):
         x, y = self.front_pos
         front_obj = self.grid.get(x, y)
         return type(front_obj) == Ball
+
+    def ball_present(self):
+        x, y = self.front_pos
+        front_obj = self.grid.get(x, y)
+        return type(front_obj) == Ball        
 
     def locked_door_on_right(self):
         x, y = self.right_pos
@@ -974,6 +1020,17 @@ class MiniGridEnv(gym.Env):
             return type(right_obj3) == Key
 
         return False
+
+    def has_key(self):
+        # if self.front_is_locked_door():
+        if self.carrying is not None:
+            return type(self.carrying) == Key
+        return False
+
+    def clear_to_drop(self):
+        x, y = self.front_pos
+        front_obj = self.grid.get(x, y)
+        return front_obj is None
 
     def close(self):
         if self.window:

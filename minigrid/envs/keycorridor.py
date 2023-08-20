@@ -75,7 +75,7 @@ class KeyCorridorEnv(RoomGrid):
     def __init__(
         self,
         num_rows=3,
-        obj_type="ball",
+        obj_type="goal",
         room_size=6,
         max_steps: int | None = None,
         **kwargs,
@@ -126,12 +126,12 @@ class KeyCorridorEnv(RoomGrid):
         self.obj = obj
         self.mission = f"pick up the {obj.color} {obj.type}"
 
-    def step(self, action):
-        obs, reward, terminated, truncated, info = super().step(action)
+    # def step(self, action):
+    #     obs, reward, terminated, truncated, info = super().step(action)
 
-        if action == self.actions.pickup:
-            if self.carrying and self.carrying == self.obj:
-                reward = self._reward()
-                terminated = True
+    #     if action == self.actions.pickup:
+    #         if self.carrying and self.carrying == self.obj:
+    #             reward = self._reward()
+    #             terminated = True
 
-        return obs, reward, terminated, truncated, info
+    #     return obs, reward, terminated, truncated, info
